@@ -148,7 +148,8 @@ def getRandomPipe():
     """returns a randomly generated pipe"""
     # y of gap between upper and lower pipe
     gapYs = [20, 30, 40, 50, 60, 70, 80, 90]
-    index = random.randint(0, len(gapYs)-1)
+    # index = random.randint(0, len(gapYs)-1)
+    index = 3
     gapY = gapYs[index]
 
     gapY += int(BASEY * 0.2)
@@ -158,6 +159,7 @@ def getRandomPipe():
         {'x': pipeX, 'y': gapY - PIPE_HEIGHT},  # upper pipe
         {'x': pipeX, 'y': gapY + PIPEGAPSIZE},  # lower pipe
     ]
+
 
 def showScore(score):
     """displays score in center of screen"""

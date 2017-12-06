@@ -37,7 +37,7 @@ DROP = np.array([1, 0])
 # Initializing Game
 game_state = game.GameState()
 initial_state = (game_state.playerx, game_state.playery, game_state.playerVelY, (game_state.upperPipes[0]['x'], game_state.upperPipes[0]['y'] + game.PIPE_HEIGHT), \
-	(-1, -1), (game_state.lowerPipes[0]['x'], game_state.lowerPipes[0]['y'] + game.PIPE_HEIGHT), (-1, -1))
+	(-1, -1), (game_state.lowerPipes[0]['x'], game_state.lowerPipes[0]['y'] + game.PIPE_HEIGHT), (-1, -1), False)
 
 def update_upper_pipes(first_pipe, second_pipe):
 	if (first_pipe[0] < 0):
@@ -66,14 +66,18 @@ def update_lower_pipes(first_pipe, second_pipe):
 	return first_pipe, second_pipe
 
 def calculate_reward(state):
+	if (state[7]):
+		return float('-inf')
+
 	bird_midpoint = np.array([state[0]+PLAYER_WIDTH/2, state[1]+PLAYER_HEIGHT/2])
 	pipe_gap_midpoint = np.array([state[3][0]+PIPE_WIDTH/2, (SCREENHEIGHT - BASEY-state[5][1]-state[3][1])/2])
 
 	dot_product = bird_midpoint.dot(pipe_gap_midpoint)
 	denominator = math.sqrt(sum([x ** 2 for x in bird_midpoint]))*math.sqrt(sum([y ** 2 for y in pipe_gap_midpoint]))
+
 	return -1 * (1-dot_product/denominator)
 
-def update_state(cur_state, action):
+def update_state(cur_state, action, terminal):
 	new_action = np.zeros(2)
 	if(action[0] == 1): #Dropping
 		new_playery = cur_state[1] + min(game_state.playerVelY, game.BASEY - cur_state[1] - game.PLAYER_HEIGHT)
@@ -86,7 +90,7 @@ def update_state(cur_state, action):
 
 	upper_one, upper_two = update_upper_pipes(cur_state[3], cur_state[4])
 	lower_one, lower_two = update_lower_pipes(cur_state[5], cur_state[6])
-	return (cur_state[0], new_playery, new_velocity, upper_one, upper_two, lower_one, lower_two)
+	return (cur_state[0], new_playery, new_velocity, upper_one, upper_two, lower_one, lower_two, terminal)
 
 def play_game():
 	state = initial_state
@@ -106,21 +110,36 @@ def play_game():
 		count += 1
 
 def training():
+	states = set()
 	Q = collections.defaultdict(lambda: np.zeros(NUM_ACTIONS))
 	for i in range(0, N_ITERS):
 		terminal = False
 		cur_state = initial_state
 		while (not terminal):
-			
-			action_index = np.argmax(Q[cur_state])
+			if (random.uniform(0,1) < 0.1):
+				action_index = random.randint(0,1)
+			else:
+				action_index = np.argmax(Q[cur_state])
+
 			action = DROP if action_index == 0 else FLAP
 
 			image_data, reward, terminal = game_state.frame_step(action)
-			new_state = update_state(cur_state, action)
+			new_state = update_state(cur_state, action, terminal)
+
 			reward = calculate_reward(new_state)
 
+			# if (cur_state == (57, 235, -9, (284, 130), (-1, -1), (284, 550), (-1, -1))):
+			# 	print ("Q BEFORE:", Q[cur_state])
+			# 	print ("REWARD: ", reward)
+
 			Q[cur_state][action_index] = reward + GAMMA * np.amax(Q[new_state])
+
+			# if (cur_state == (57, 235, -9, (284, 130), (-1, -1), (284, 550), (-1, -1))):
+			# 	print ("Q AFTER:", Q[cur_state], "\n")
+
 			cur_state = new_state
+			states.add(cur_state)
+		print ("### DIED ####\n")
 	print "Q:", Q
 
 
