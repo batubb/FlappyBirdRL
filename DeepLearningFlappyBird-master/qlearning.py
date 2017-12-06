@@ -65,17 +65,34 @@ def update_lower_pipes(first_pipe, second_pipe):
 		second_pipe = (second_pipe[0]-4, second_pipe[1])
 	return first_pipe, second_pipe
 
-def calculate_reward(state):
+def calculate_reward(state, action):
 	if (state[7]):
 		return float('-inf')
 
+	first_upper_pipe, second_upper_pipe, first_lower_pipe, second_lower_pipe = state[3], state[4], state[5], state[6]
+
 	bird_midpoint = np.array([state[0]+PLAYER_WIDTH/2, state[1]+PLAYER_HEIGHT/2])
-	pipe_gap_midpoint = np.array([state[3][0]+PIPE_WIDTH/2, (SCREENHEIGHT - BASEY-state[5][1]-state[3][1])/2])
 
-	dot_product = bird_midpoint.dot(pipe_gap_midpoint)
-	denominator = math.sqrt(sum([x ** 2 for x in bird_midpoint]))*math.sqrt(sum([y ** 2 for y in pipe_gap_midpoint]))
+	first_pipe_gap_midpoint = np.array([first_upper_pipe[0]+PIPE_WIDTH/2, (SCREENHEIGHT - BASEY-first_lower_pipe[1]-first_upper_pipe[1])/2])
 
-	return -1 * (1-dot_product/denominator)
+	first_dot_product = bird_midpoint.dot(first_pipe_gap_midpoint)
+	first_denominator = math.sqrt(sum([x ** 2 for x in bird_midpoint]))*math.sqrt(sum([y ** 2 for y in first_pipe_gap_midpoint]))
+
+	if (second_upper_pipe[0] == -1 and second_upper_pipe[1] == -1):
+		pipe_angle_contribution = -1 * (1-first_dot_product/first_denominator)
+	else:
+		second_pipe_gap_midpoint = np.array([second_upper_pipe[0]+PIPE_WIDTH/2, (SCREENHEIGHT - BASEY-second_lower_pipe[1]-first_upper_pipe[1])/2])
+		second_dot_product = bird_midpoint.dot(second_pipe_gap_midpoint)
+		second_denominator = math.sqrt(sum([x ** 2 for x in bird_midpoint]))*math.sqrt(sum([y ** 2 for y in second_pipe_gap_midpoint]))
+
+		if (state[0] > (SCREENHEIGHT - BASEY-first_lower_pipe[1]-first_upper_pipe[1])/2):
+			pipe_angle_contribution = 0.1 * (-1 * (1-first_dot_product/first_denominator)) + 0.9 * (-1 * (1-second_dot_product/second_denominator))
+		else:
+			pipe_angle_contribution = 0.9 * (-1 * (1-first_dot_product/first_denominator)) + 0.1 * (-1 * (1-second_dot_product/second_denominator))
+	
+	action_contribution = -0.05 if action == 1 else 0
+
+	return pipe_angle_contribution + action_contribution
 
 def update_state(cur_state, action, terminal):
 	new_action = np.zeros(2)
@@ -126,7 +143,7 @@ def training():
 			image_data, reward, terminal = game_state.frame_step(action)
 			new_state = update_state(cur_state, action, terminal)
 
-			reward = calculate_reward(new_state)
+			reward = calculate_reward(new_state, action_index)
 
 			# if (cur_state == (57, 235, -9, (284, 130), (-1, -1), (284, 550), (-1, -1))):
 			# 	print ("Q BEFORE:", Q[cur_state])
