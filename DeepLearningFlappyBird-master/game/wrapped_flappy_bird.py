@@ -159,7 +159,6 @@ def getRandomPipe():
         {'x': pipeX, 'y': gapY + PIPEGAPSIZE},  # lower pipe
     ]
 
-
 def showScore(score):
     """displays score in center of screen"""
     scoreDigits = [int(x) for x in list(str(score))]
