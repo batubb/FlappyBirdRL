@@ -46,7 +46,6 @@ class FlappyBirdLearner(object):
 			return
 
 		s_tpo, a_tpo, sp_tpo = self.history[len(self.history)-1]
-		# r_tpo = -1000
 
 		died_by_upper = sp_tpo[1] > 10
 
@@ -57,7 +56,7 @@ class FlappyBirdLearner(object):
 			if ((len(self.history)-2)-timestep<2):
 				self.Q[s_t][a_t] = self.Q[s_t][a_t] + self.alpha * (-1000 + self.gamma*self.Q[sp_t][a_tpo]- self.Q[s_t][a_t])
 			elif (died_by_upper and a_t == self.flap_idx):
-				print ("DIED BY UPPER PIPE...")
+				print ("DIED BY UPPER")
 				self.Q[s_t][a_t] = self.Q[s_t][a_t] + self.alpha * (-1000 + self.gamma*self.Q[sp_t][a_tpo]- self.Q[s_t][a_t])
 				died_by_upper = False
 			else:
@@ -70,44 +69,6 @@ class FlappyBirdLearner(object):
 		if (len(self.history) == 1):
 			return
 		self.N = collections.defaultdict(lambda: np.zeros(2))
-		# s_tpo, a_tpo, sp_tpo = self.history[len(self.history)-1]
-
-		# died_by_upper = sp_tpo[1] > 10
-		# delta_flag = died_by_upper
-		# total_steps = len(self.history)
-		# num_times_penalized = 0
-		# for timestep in reversed(range(0, len(self.history)-1)):
-		# 	s_t, a_t, sp_t = self.history[timestep]
-		# 	self.N[s_t][a_t] = self.N[s_t][a_t] + 1
-
-		# 	if ((len(self.history)-2)-timestep < 10):
-		# 		delta = -1000 + self.gamma*self.Q[s_tpo][a_tpo]-self.Q[s_t][a_t]
-		# 	elif(died_by_upper and a_t == self.flap_idx):
-		# 		delta = -1000 + self.gamma*self.Q[s_tpo][a_tpo]-self.Q[s_t][a_t]
-		# 		died_by_upper = False
-		# 	else:
-		# 		delta = 1 + self.gamma*self.Q[s_tpo][a_tpo]-self.Q[s_t][a_t]
-
-		# 	print s_t, a_t, delta
-		# 	last_two_jumps = 2
-		# 	for step_idx in reversed(range(1, timestep+1)):
-		# 		for a in range(0, self.num_actions):
-		# 			s = self.history[step_idx][0]
-		# 			# if (delta_flag and a == self.flap_idx and last_two_jumps > 2 and (timestep == total_steps-2) or (timestep == total_steps-1)):
-		# 			# 	print "upper"
-		# 			# 	delta_penalty = -1000 + self.gamma*self.Q[s_tpo][a_tpo]-self.Q[s_t][a_t]
-		# 			# 	self.Q[s][a] = self.Q[s][a]+self.alpha*delta_penalty*self.N[s][a]
-		# 			# 	self.N[s][a] = self.gamma * self.lamb * self.N[s][a]
-		# 			# else:
-		# 			print self.Q[s][a], delta
-		# 			self.Q[s][a] = self.Q[s][a]+self.alpha*delta*self.N[s][a]
-		# 			self.N[s][a] = self.gamma * self.lamb * self.N[s][a]
-		# 			# print self.Q[s]
-		# 	s_tpo, a_tpo, sp_tpo = s_t, a_t, sp_t
-		# self.history = []
-		# s_t, a_t, sp_t = self.history[0]
-		# died_by_upper = sp_tpo[1] > 10
-		# delta_flag = died_by_upper
 		died_by_upper = self.history[len(self.history)-1][2][1] > 10
 		total_steps = len(self.history)
 		num_times_penalized = 0
@@ -193,29 +154,6 @@ class FlappyBirdLearner(object):
 
 	############################## GENERALIZATION ##############################
 
-	# def handleUnseen(self):
-	# 	total = 30 * 30 * 19
-	# 	seen_states self.Q.keys()
-	# 	for sidx in range(0, total):
-	# 		for action in range(0, self.num_actions):
-	# 			running_total = 0
-	# 			normalizer = 0
-	# 			if (self.Q[sidx][action] == 0): 
-	# 				shouldContinue = True
-	# 				distance = 1
-	# 				while shouldContinue:
-	# 					neighbors = self.get_neighbors(seen_states[state], distance)
-	# 					for s in neighbors:
-	# 						q_val = self.Q[s][action]
-	# 						if q_val != 0:
-	# 							shouldContinue = False
-	# 							running_total += q_val
-	# 							normalizer += 1
-	# 					distance += 1
-	# 				if (normalizer == 0):
-	# 					normalizer += 1
-	# 				self.Q[][action] = running_total/float(normalizer)
-	# 	print len(self.Q.keys())
 	def handleUnseen(self):
 		total = 20 * 20 * 18
 		seen_states = self.Q.keys()
