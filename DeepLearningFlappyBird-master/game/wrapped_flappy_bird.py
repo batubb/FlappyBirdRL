@@ -7,7 +7,7 @@ import pygame.surfarray as surfarray
 from pygame.locals import *
 from itertools import cycle
 
-FPS = 30
+FPS = 150
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 
@@ -54,8 +54,34 @@ class GameState:
         self.playerMaxVelY =  10   # max vel along Y, max descend speed
         self.playerMinVelY =  -8   # min vel along Y, max ascend speed
         self.playerAccY    =   1   # players downward accleration
-        self.playerFlapAcc =  -9   # players speed on flapping
+        self.playerFlapAcc =  -6   # players speed on flapping
         self.playerFlapped = False # True when player flaps
+
+    def getConstants(self, key):
+        glossary = {
+        'SCREENWIDTH': 288,
+        'SCREENHEIGHT': 512,
+        'BASEY' : SCREENHEIGHT * 0.79,
+        'PLAYER_WIDTH' : IMAGES['player'][0].get_width(),
+        'PLAYER_HEIGHT' : IMAGES['player'][0].get_height(),
+        'PIPE_WIDTH' : IMAGES['pipe'][0].get_width(),
+        'PIPE_HEIGHT' : IMAGES['pipe'][0].get_height(),
+        'BACKGROUND_WIDTH' :  IMAGES['background'].get_width()
+        }
+
+        return glossary[key]
+
+    def getConstantsGlossary(self):
+        return {
+        'SCREENWIDTH': 288,
+        'SCREENHEIGHT': 512,
+        'BASEY' : SCREENHEIGHT * 0.79,
+        'PLAYER_WIDTH' : IMAGES['player'][0].get_width(),
+        'PLAYER_HEIGHT' : IMAGES['player'][0].get_height(),
+        'PIPE_WIDTH' : IMAGES['pipe'][0].get_width(),
+        'PIPE_HEIGHT' : IMAGES['pipe'][0].get_height(),
+        'BACKGROUND_WIDTH' :  IMAGES['background'].get_width()
+        }
 
     def frame_step(self, input_actions):
         pygame.event.pump()
@@ -118,6 +144,7 @@ class GameState:
         isCrash= checkCrash({'x': self.playerx, 'y': self.playery,
                              'index': self.playerIndex},
                             self.upperPipes, self.lowerPipes)
+        score_before = self.score
         if isCrash:
             #SOUNDS['hit'].play()
             #SOUNDS['die'].play()
@@ -142,24 +169,25 @@ class GameState:
         pygame.display.update()
         FPSCLOCK.tick(FPS)
         #print self.upperPipes[0]['y'] + PIPE_HEIGHT - int(BASEY * 0.2)
-        return image_data, reward, terminal
+        # return image_data, reward, terminal
+        return image_data, score_before, terminal
 
 def getRandomPipe():
     """returns a randomly generated pipe"""
     # y of gap between upper and lower pipe
     gapYs = [20, 30, 40, 50, 60, 70, 80, 90]
-    # index = random.randint(0, len(gapYs)-1)
-    index = 3
+    index = random.randint(0, len(gapYs)-1)
+    # index = 7
     gapY = gapYs[index]
 
     gapY += int(BASEY * 0.2)
     pipeX = SCREENWIDTH + 10
 
+
     return [
         {'x': pipeX, 'y': gapY - PIPE_HEIGHT},  # upper pipe
         {'x': pipeX, 'y': gapY + PIPEGAPSIZE},  # lower pipe
     ]
-
 
 def showScore(score):
     """displays score in center of screen"""
